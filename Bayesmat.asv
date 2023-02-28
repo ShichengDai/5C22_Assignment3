@@ -79,9 +79,9 @@ while n < NumUnk
         B(y, x, :) = b;
         Alpha(y, x) = a;
         unkreg(y, x) = 0;
-        
+        n=n+1;
     end
-    n=n+i;
+
 end
 
 
