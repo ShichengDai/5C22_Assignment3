@@ -52,16 +52,17 @@ while n < NumUnk
         %make a window to compute for F, B and Alpha
         a = makewindow(Y(i), X(i), N, Alpha);
         fgraph = makewindow(Y(i), X(i), N, F);
-        fgraph(:, :, 1 : 3) = fgraph;
         bgraph = makewindow(Y(i), X(i), N, B);
-        bgraph(:, :, 1 : 3) = bgraph;
 
         %calculate for weights
         fw = (a .^ 2) .* g;
         fw = fw(fw > 0);
         bw = ((1 - a) .^ 2) .* g;
         bw = bw(bw > 0);
-
+        if length(fw)<Nthres || length(bw)<Nthres
+            continue;
+        end
+        %Do clustering and solving here
 
     end
 
