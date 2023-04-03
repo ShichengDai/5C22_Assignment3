@@ -1,87 +1,111 @@
 function [F,B,alpha] = Bayesmat(im, trimap, N, sigma)
-% im and trimap should be double
-% im = m * n * 3  trimap = m * n
-% N is the length of the edges of the neibourhood
-% N should be an even number
-% Sigma is a parameter of gaussian filter
-
-imsize = size(trimap);
+% % im and trimap should be double
+% % im = m * n * 3  trimap = m * n
+% % N is the length of the edges of the neibourhood
+% % N should be an even number
+% % Sigma is a parameter of gaussian filter
 
 %make masks for fg bg and unkreg
-bgmask2D = trimap == 0;
-bgmask3D(:, :, 1 : 3) = bgmask2D;
-fgmask2D = trimap == 1;
-fgmask3D(:, :, 1 : 3) = fgmask2D;
-unkreg = trimap ~= 1 && trimap ~= 0;
+bgmask = trimap == 0; 
+fgmask = trimap == 1; 
+unkmask = ~bgmask & ~fgmask;
 
 %initialize F B and Alpha
-F = im;
-B = im;
-Alpha = zeros(size(trimap));
-F(fgmask3D) = 0;
-B(bgmask3D) = 0;
-Alpha(fgmask2D) = 1;
-Alpha(bgmask2D) = 0;
-Alpha(unkreg) = NaN;
+F = im; 
+F(repmat(~fgmask, [1, 1, 3])) = 0;
+B = im; 
+B(repmat(~bgmask, [1, 1, 3])) = 0;
+alpha = zeros(size(trimap));
+alpha(fgmask) = 1;
+alpha(unkmask) = NaN;
 
-%make gasussian parameter p
-g = fspecial('gaussian', N, sigma);
+nUnknown = sum(unkmask(:));
 
+%make gasussian parameter g
+g = fspecial('gaussian', N, sigma); 
 %mormalize the parameter to make sure p will not change the image luminance
 g = g / max(g(:));
+% square structuring element for eroding the unknown region(s)
+se = strel('square', 3);
 
 %set a threshold for the minimum valid pixels in the neibourhood
 %change the value here if the loop stucks
-Nthres = 10;
+Nthres = 0;
 
-%make the number of unkown pixels
-NumUnk = sum(unkreg(:));
-
-%make a caounter to do the loop
 n = 1;
+unkreg = unkmask;
+while n < nUnknown
 
-% make a window to erode the unkown region
-se=strel('square',3);
-
-while n < NumUnk
-
-    % find the locations for each unkown pixel
-    erodereg=imerode(unkreg,se);
-    unkpix=~erodereg&unkreg;
-    [Y, X] = find(unkpix);
-
+    % get unknown pixels to process at this iteration
+    unkreg = imerode(unkreg, se);
+    unkpixels = ~unkreg&unkmask;
+    [Y,X] = find(unkpixels); 
+    
     for i = 1 : length(Y)
+        
+       
+        % take current pixel
+        x = X(i); 
+        y = Y(i);
+        c = reshape(im(y, x, :), [3, 1]);
 
-        %make the parameter c here
-        c = reshape(im(Y(i),X(i),:),[3,1]);
-
-        %make a window to compute for F, B and Alpha
-        a = makewindow(Y(i), X(i), N, Alpha);
-        fgraph = makewindow(Y(i), X(i), N, F);
-        bgraph = makewindow(Y(i), X(i), N, B);
-
-        %calculate for weights
-        fw = (a .^ 2) .* g;
-        fw = fw(fw > 0);
-        bw = ((1 - a) .^ 2) .* g;
-        bw = bw(bw > 0);
-        if length(fw)<Nthres || length(bw)<Nthres
+        % take surrounding alpha values
+        a = makewindow(y, x, N, alpha);
+        
+        % take surrounding foreground pixels
+        f_pixels = makewindow(y, x, N, B);
+        f_weights = (a .^ 2) .* g;
+        f_pixels = reshape(f_pixels, N * N, 3);
+        f_pixels = f_pixels(f_weights > 0, :);
+        f_weights = f_weights(f_weights > 0);
+        
+        % take surrounding background pixels
+        b_pixels = makewindow(y, x, N, B);
+        b_weights = ((1 - a) .^ 2) .* g;
+        b_pixels = reshape(b_pixels, N * N, 3);
+        b_pixels = b_pixels(b_weights > 0, :);
+        b_weights = b_weights(b_weights > 0);
+        
+        % if not enough data, return to it later...
+        if length(f_weights) < Nthres || length(b_weights) < Nthres
             continue;
         end
-        %Do clustering and solving here
-        %...
-        %...
-        %...
+        
+        % partition foreground and background pixels to clusters (in a
+        % weighted manner)
+        [mu_f, Sigma_f] = cluster_OrachardBouman(f_pixels, f_weights, 0.05);
+        [mu_b, Sigma_b] = cluster_OrachardBouman(b_pixels, b_weights, 0.05);
 
 
-        %Give the new value of the pixel
+        
+        % update covariances with camera variance, as mentioned in their
+        % addendum
+        Sigma_f = addCamVar(Sigma_f,0.01);
+        Sigma_b = addCamVar(Sigma_b,0.01);
+        
+        % set initial alpha value to mean of surrounding pixels
+        alpha_init = nanmean(a(:));
+        
+        % solve for current pixel
+        [f, b, a] = solve1(mu_f, Sigma_f, mu_b, Sigma_b, c, 0.01, alpha_init, 50, 1e-6);
         F(y, x, :) = f;
         B(y, x, :) = b;
-        Alpha(y, x) = a;
-        unkreg(y, x) = 0;
-        
+        alpha(y, x) = a;
+        disp(a)
+        unkmask(y, x)= 0; % remove from unkowns
+        n = n + 1;
     end
-    n=n+i;
+end
+
+
+function Sigma=addCamVar(Sigma,sigma_C)
+
+Sigma=zeros(size(Sigma));
+for i=1:size(Sigma,3)
+    Sigma_i=Sigma(:,:,i);
+    [U,S,V]=svd(Sigma_i);
+    Sp=S+diag([sigma_C^2,sigma_C^2,sigma_C^2]);
+    Sigma(:,:,i)=U*Sp*V';
 end
 
 
