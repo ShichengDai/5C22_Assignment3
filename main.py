@@ -3,46 +3,34 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.ndimage import convolve
 
-plt.close('all')
+import cv2
+import scipy.io as sio
+
+#Clustering Function
+from bayesian_clustering import FandB
 
 
-#%%
-def FandB(f_var, b_var, f_mean, b_mean, un_c, alpha):
-    SigmaC_Sq = 64
-    f_inv = np.linalg.inv(f_var)
-    b_inv = np.linalg.inv(b_var)
-    A_fl = f_inv + (np.eye(3) * alpha * alpha) / (SigmaC_Sq)
-    A_fr = (np.eye(3) * alpha * (1 - alpha)) / (SigmaC_Sq)
-    A_sl = (np.eye(3) * alpha * (1 - alpha)) / (SigmaC_Sq)
-    A_sr = b_inv + (np.eye(3) * (1 - alpha) * (1 - alpha)) / (SigmaC_Sq)
-    A = np.vstack((np.hstack((A_fl, A_fr)), np.hstack((A_sl, A_sr))))
-    b_l = (f_inv @ f_mean[:, None]) + (un_c * alpha) / (SigmaC_Sq)
-    b_r = (b_inv @ b_mean[:, None]) + (un_c * (1 - alpha)) / (SigmaC_Sq)
-    b = np.concatenate((b_l, b_r))
-
-    x = np.linalg.solve(A, b)
-    F = x[:3]
-    B = x[3:]
-
-    return F, B
-
-
-#%%
-imgo = Image.open('gandalf-input.png')
-trimap = Image.open('gandalf-trimap.png')
+imgo = Image.open('Image_Source\Raw_Image\gandalf-input.png')
+trimap = Image.open('Image_Source\Trimap\gandalf-trimap.png')
+trimap = trimap.convert('L')
 plt.figure()
 plt.imshow(imgo)
 plt.axis('off')
 plt.figure()
-plt.imshow(trimap)
-plt.axis('off')
-plt.show()
+
+plt.imshow(trimap, cmap='gray')
+
+
+
 
 # Convert imgo and trimap to double precision
 imgo = np.array(imgo).astype(np.float64) / 255.0
 trimap = np.array(trimap).astype(np.float64) / 255.0
 
+#groundtruth = cv2.imread("gt_alpha_matte.png", 0) / 255.0
 M, N, _ = imgo.shape
+
+
 
 # Initialize output arrays
 fg = np.zeros((M, N, 3))
@@ -128,37 +116,41 @@ for i in range(M):
         for k in range(10):
             alpha_prev = alpha
             F, B = FandB(f_var, b_var, f_mean, b_mean, un_c, alpha)
+
+            print(un_c - B)
+
             alpha = np.dot((un_c - B).flatten(), (F - B).flatten()) / np.linalg.norm(F - B)**2
 
             if abs(alpha - alpha_prev) <= 0.0001:
                 break
 
-        alpha_un[i, j] = alpha
+        alpha_un[i, j] = abs(alpha)
         fg[i, j, :] = F.flatten()
         bg[i, j, :] = B.flatten()
 
+
+
 plt.figure()
-plt.imshow(alpha_un)
+plt.imshow(alpha_un, cmap='gray')
 plt.axis('off')
 plt.title('Alpha Matte')
-plt.show()
 
-print ("",alpha[1:10,1:10])
 
 
 # fuse
-img3 = Image.open('gandalf-background.png')
-img3 = np.array(img3).astype(np.float64) / 255.0
+#img3 = Image.open('gandalf-background.png')
+#img3 = np.array(img3).astype(np.float64) / 255.0
 
-img_final = np.copy(img3)
+#img_final = np.copy(img3)
 
-img_final[:, :, 0] = fg[:, :, 0] * alpha_un[:, :] + img3[:, :, 0] * (1 - alpha_un[:, :])
-img_final[:, :, 1] = fg[:, :, 1] * alpha_un[:, :] + img3[:, :, 1] * (1 - alpha_un[:, :])
-img_final[:, :, 2] = fg[:, :, 2] * alpha_un[:, :] + img3[:, :, 2] * (1 - alpha_un[:, :])
-img_final = np.clip(img_final, 0, 1)
+#img_final[:, :, 0] = fg[:, :, 0] * alpha_un[:, :] + img3[:, :, 0] * (1 - alpha_un[:, :])
+#img_final[:, :, 1] = fg[:, :, 1] * alpha_un[:, :] + img3[:, :, 1] * (1 - alpha_un[:, :])
+#img_final[:, :, 2] = fg[:, :, 2] * alpha_un[:, :] + img3[:, :, 2] * (1 - alpha_un[:, :])
+#img_final = np.clip(img_final, 0, 1)
 
-plt.figure()
-plt.imshow(img_final)
-plt.axis('off')
-plt.title('Composed Image')
+#plt.figure()
+#plt.imshow(img_final)
+#plt.axis('off')
+#plt.title('Composed Image')
+
 plt.show()
