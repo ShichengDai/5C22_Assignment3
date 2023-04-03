@@ -116,9 +116,7 @@ for i in range(M):
         for k in range(10):
             alpha_prev = alpha
             F, B = FandB(f_var, b_var, f_mean, b_mean, un_c, alpha)
-
             print(un_c - B)
-
             alpha = np.dot((un_c - B).flatten(), (F - B).flatten()) / np.linalg.norm(F - B)**2
 
             if abs(alpha - alpha_prev) <= 0.0001:
@@ -154,3 +152,4 @@ plt.title('Alpha Matte')
 #plt.title('Composed Image')
 
 plt.show()
+
