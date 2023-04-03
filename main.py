@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.ndimage import convolve
+
 import cv2
 import scipy.io as sio
 
@@ -12,21 +13,23 @@ from bayesian_clustering import FandB
 imgo = Image.open('Image_Source\Raw_Image\gandalf-input.png')
 trimap = Image.open('Image_Source\Trimap\gandalf-trimap.png')
 trimap = trimap.convert('L')
-
-
 plt.figure()
 plt.imshow(imgo)
 plt.axis('off')
 plt.figure()
+
 plt.imshow(trimap, cmap='gray')
+
 
 
 
 # Convert imgo and trimap to double precision
 imgo = np.array(imgo).astype(np.float64) / 255.0
 trimap = np.array(trimap).astype(np.float64) / 255.0
+
 #groundtruth = cv2.imread("gt_alpha_matte.png", 0) / 255.0
 M, N, _ = imgo.shape
+
 
 
 # Initialize output arrays
@@ -113,11 +116,14 @@ for i in range(M):
         for k in range(10):
             alpha_prev = alpha
             F, B = FandB(f_var, b_var, f_mean, b_mean, un_c, alpha)
+
             print(un_c - B)
+
             alpha = np.dot((un_c - B).flatten(), (F - B).flatten()) / np.linalg.norm(F - B)**2
 
             if abs(alpha - alpha_prev) <= 0.0001:
                 break
+
         alpha_un[i, j] = abs(alpha)
         fg[i, j, :] = F.flatten()
         bg[i, j, :] = B.flatten()
@@ -146,4 +152,5 @@ plt.title('Alpha Matte')
 #plt.imshow(img_final)
 #plt.axis('off')
 #plt.title('Composed Image')
+
 plt.show()
