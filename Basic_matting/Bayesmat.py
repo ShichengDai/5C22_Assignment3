@@ -104,21 +104,26 @@ def Bayesmat(im, trimap, N, sigma):
 
 
 
-    return alpha
+    return alpha, F, B
 
 
 def main():
-    img = imageio.imread("Image_Source\Raw_Image\GT11.png")[:, :, :3]
-    trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT11.png", as_gray=True)
-    alpha = Bayesmat(img, trimap, 25, 8)
-    save_path = os.path.join(folder_path, 'GT11.png')
-    cv2.imwrite(save_path, alpha * 255)
+    img = imageio.imread("Image_Source\Raw_Image\GT19.png")[:, :, :3]
+    trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT19.png", as_gray=True)
+    alpha, F, B = Bayesmat(img, trimap, 25, 8)
+    C = np.zeros(img.shape)
+    C[:,:,0] = alpha * F[:,:,0] + alpha * B[:,:,0]
+    C[:,:,1] = alpha * F[:,:,1] + alpha * B[:,:,1]
+    C[:,:,2] = alpha * F[:,:,2] + alpha * B[:,:,2]
+    # save_path = os.path.join(folder_path, 'GT11.png')
+    # cv2.imwrite(save_path, alpha * 255)
     # plt.title("Alpha matte")
     # plt.imshow(alpha, cmap='gray')
     # plt.show()
+    plt.imshow(C)
+    plt.show()
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    folder_path = "C:/Users/sdai/Desktop/5C22_Assignment3/Output"
+    folder_path = "Bayes_Output"
     main()
-    unittest.main()
