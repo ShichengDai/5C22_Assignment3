@@ -5,6 +5,7 @@ from gaussian_filter import gaussian_filter
 from clustering import clustFunc
 from solve import solve
 import imageio
+import os
 
 
 
@@ -27,18 +28,13 @@ def Bayesmat(im, trimap, N, sigma):
     alpha[unkmask] = np.nan
     nUnknown = np.sum(unkmask)
 
-    # make gaussian parameter g
-    g = gaussian_filter(N, sigma)
-    # normalize the parameter to make sure p will not change the image luminance
-    g = g / np.max(g)
-    print(g.shape)
     # square structuring element for eroding the unknown region(s)
     se = np.ones((3, 3))
 
     # set a threshold for the minimum valid pixels in the neighbourhood
     # change the value here if the loop stucks
     Nthres = 5
-
+    status = 0
     n = 1
     unkreg = unkmask
     while n < nUnknown:
@@ -49,8 +45,24 @@ def Bayesmat(im, trimap, N, sigma):
         Y, X = np.nonzero(unkpixels)
 
         for i in range(len(Y)):
-            print(n, nUnknown)
+            print(n, '/', nUnknown)
+            # auto enlarge windowsize
+            if status > 10:
+                N += 100
+                Nthres -= 1
+                status += 1
+            if status > 50:
+                alpha[y, x] = 0
+                unkmask[y, x] = 0
+                n += 1 
+                status = 0
+                N = 25
+                Nthres = 5
 
+            # make gaussian parameter g
+            g = gaussian_filter(N, sigma)
+            # normalize the parameter to make sure p will not change the image luminance
+            g = g / np.max(g)
             # take current pixel
             x = X[i]
             y = Y[i]
@@ -74,7 +86,8 @@ def Bayesmat(im, trimap, N, sigma):
             b_weights = b_weights[np.nan_to_num(b_weights) > 0]
 
             if len(f_weights) < Nthres or len(b_weights) < Nthres:
-              continue
+                status += 1
+                continue
             mu_f, sigma_f = clustFunc(f_pixels, f_weights)
             mu_b, sigma_b = clustFunc(b_pixels, b_weights)
 
@@ -86,19 +99,26 @@ def Bayesmat(im, trimap, N, sigma):
             B[y, x] = b.ravel()
             alpha[y, x] = alphaT
             unkmask[y, x] = 0
-            n += 1
+            n += 1 
+            status = 0
+
+
 
     return alpha
 
 
 def main():
-    img = imageio.imread("Image_Source\Raw_Image\gandalf-input.png")[:, :, :3]
-    trimap = imageio.imread("Image_Source\Trimap\gandalf-trimap.png", as_gray=True)
+    img = imageio.imread("Image_Source\Raw_Image\GT11.png")[:, :, :3]
+    trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT11.png", as_gray=True)
     alpha = Bayesmat(img, trimap, 25, 8)
-    plt.title("Alpha matte")
-    plt.imshow(alpha, cmap='gray')
-    plt.show()
+    save_path = os.path.join(folder_path, 'GT11.png')
+    cv2.imwrite(save_path, alpha * 255)
+    # plt.title("Alpha matte")
+    # plt.imshow(alpha, cmap='gray')
+    # plt.show()
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    folder_path = "C:/Users/sdai/Desktop/5C22_Assignment3/Output"
     main()
+    unittest.main()
