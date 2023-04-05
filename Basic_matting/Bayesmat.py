@@ -115,11 +115,6 @@ def main():
     C[:,:,0] = alpha * F[:,:,0] + alpha * B[:,:,0]
     C[:,:,1] = alpha * F[:,:,1] + alpha * B[:,:,1]
     C[:,:,2] = alpha * F[:,:,2] + alpha * B[:,:,2]
-    # save_path = os.path.join(folder_path, 'GT11.png')
-    # cv2.imwrite(save_path, alpha * 255)
-    # plt.title("Alpha matte")
-    # plt.imshow(alpha, cmap='gray')
-    # plt.show()
     plt.imshow(C)
     plt.show()
 

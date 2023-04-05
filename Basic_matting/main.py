@@ -13,8 +13,8 @@ start_time = time.time()
 
 # Your code goes here
 
-img = imageio.imread("Image_Source\Raw_Image\GT12.png")[:, :, :3]
-trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT12.png", as_gray=True)
+img = imageio.imread("Image_Source\Const_bg_Raw\GT02.png")[:, :, :3]
+trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT02.png", as_gray=True)
 alpha,F,B = Bayesmat(img, trimap, 25, 8)
 
 
@@ -22,21 +22,19 @@ alpha,F,B = Bayesmat(img, trimap, 25, 8)
 # plt.show()
 
 C = np.zeros(img.shape)
-C[:,:,0] = alpha * F[:,:,0] + alpha * B[:,:,0]
-C[:,:,1] = alpha * F[:,:,1] + alpha * B[:,:,1]
-C[:,:,2] = alpha * F[:,:,2] + alpha * B[:,:,2]
-
-# cv2.imwrite('composite_output\composite_GT12_255.png',c_255)
-# cv2.imwrite('composite_output\composite_GT12.png',com)
+C[:,:,0] = alpha * img[:,:,0]
+C[:,:,1] = alpha * img[:,:,1]
+C[:,:,2] = alpha * img[:,:,2]
 
 
-plt.imsave('Basic_matting\composite_output\composite_GT12.png',C)
-
-# plt.imshow(C)
-# plt.show()
 
 end_time = time.time()
 elapsed_time = end_time - start_time
+
+# plt.imsave('Basic_matting\composite_output\const_GT02.png',C)
+# plt.imsave('Bayes_Output\const_GT02.png',alpha)
+
+cv2.imwrite('Bayes_Output\const_GT02.png', alpha * 255)
 
 print("Elapsed time: {:.2f} seconds".format(elapsed_time))
 
@@ -56,7 +54,7 @@ def check_alpha(alpha):
 class bayesiantesting(unittest.TestCase):
     
     def test_checkshape(self):
-        gt_image = imageio.imread("Image_Source\Ground_Truth\GT12.png")
+        gt_image = imageio.imread("Image_Source\Ground_Truth\GT02.png")
 
         # print("gt_image ",gt_image.shape)
         # print("alpha ",alpha.shape)
@@ -71,7 +69,7 @@ class bayesiantesting(unittest.TestCase):
         self.assertEqual(check_alpha(alpha),True,"Alpha values are not Correct")
 
     def test_check_Comp_shape(self):
-        gt_image = imageio.imread("Image_Source\Ground_Truth\GT12.png")
+        gt_image = imageio.imread("Image_Source\Ground_Truth\GT02.png")
 
         # print("gt_image ",gt_image.shape)
         # print("alpha ",alpha.shape)

@@ -3,8 +3,8 @@ import cv2
 
 
 # Load the images
-Gt_img = cv2.imread('gt.png');
-predicted_img = cv2.imread('result.png');
+Gt_img = cv2.imread('Image_Source\Ground_Truth\GT04.png');
+predicted_img = cv2.imread('Bayes_Output\const_GT04.png');
 
 Gt_img = Gt_img[:,:,1]/255;
 predicted_img = predicted_img[:,:,1]/255;
@@ -31,7 +31,7 @@ def cal_mse():
     return mse
 
 
-def psnr(Gt_img, predicted_img = cv2.imread('result.png')):
+def psnr(Gt_img, predicted_img = cv2.imread('Bayes_Output\const_GT04.png')):
     # calculate MSE 
     diff = (Gt_img - predicted_img) ** 2
     mse = np.sum(diff) / (Gt_img.shape[0] * Gt_img.shape[1])
