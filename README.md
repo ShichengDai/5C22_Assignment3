@@ -104,7 +104,7 @@ The second pair is the comparison between the output for GT04 with constant back
 
 <img src="Bayes_Output\const_GT04.png" width="350" >  <img src="Image_Source\Ground_Truth\GT04.png" width="350" >
 
-The visual quality of the second one is worse than the first one and also can be seen in the table below which shows the results from constant background images. However, the performance is worse the the former experiment, the running speed is higher than the first one.
+The visual quality of the second one is worse than the first one and also can be seen in the table below which shows the results from constant background images. However, the performance is worse the the former experiment, the running speed is higher than the first one. And as seen in the following two images are the composited imges from the two experiments(Left: constant background; Right: complex background).
 
 |      | Time_bayesian (sec) | Laplacian_MSE | Laplacian_PSNR | Bayesian_MSE | Bayesian_PSNR |
 |------|---------------------|---------------|----------------|--------------|---------------|
@@ -112,6 +112,9 @@ The visual quality of the second one is worse than the first one and also can be
 | GT02 | 266.69              | 0.035110048   | 14.54568574    | 0.007790774  | 21.08419392   |
 | GT03 | 4244.61             | 0.142706174   | 8.455572377    | 0.049884994  | 13.02030073   |
 | GT04 | 2112.79             | 0.140667385   | 8.518065866    | 0.040326065  | 13.94414151   |
+
+<img src="Basic_matting\composite_output\comp_GT04_const.png" width="350" >  <img src="Basic_matting\composite_output\comp_GT04.png" width="350" >
+
 ---
 ## Credits
 
