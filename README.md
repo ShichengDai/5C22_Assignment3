@@ -57,9 +57,9 @@ The `solve.py` implements a function `solve` that calculates the F, B and alpha 
 It takes the wighted mean `mu_F` , `mu_B` , `Sigma_B` and `sigma_C` as inputs and calculate the most likely estimates of F, B and alpha with a maximum a posteriori technique.
 we break the problem into two quadratic equations.  
 1.  In the first euation we assume the alpha is constant.  
-<img src="Bayes_Output\f_and_b_equation.PNG" width="300" >  
+<img src="Bayes_Output\alpha_equation.PNG" width="300" >  
 2. In second equation we consider the F and B are constant.  
-<img src="Bayes_Output\alpha_equation.PNG" width="200" >
+<img src="Bayes_Output\f_and_b_equation.PNG" width="300" >  
 
 The likelihood of the given foreground, background, and alpha matte is calculated at for each iteration, until the maximum number of iterations is reached or diffrence is less than the `minLike`.
 
