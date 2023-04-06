@@ -117,6 +117,7 @@ The visual quality of the second one is worse than the first one and also can be
 
 ---
 ## Credits
-
-This code was developed for purely academic purposes by Shicheng Dai as part of the module 5C22 Compuntational Methods. You can get access to the codes via hhttps://github.com/ShichengDai/5C22_Assignment3
+Rubeinstein - Matlab  
+Marco forte - Python  
+This code was developed for purely academic purposes by Shicheng Dai， Dian Zhuang and Atul Redekar as part of the module 5C22 Compuntational Methods. we have taken a You can get access to the codes via https://github.com/ShichengDai/5C22_Assignment3
 
