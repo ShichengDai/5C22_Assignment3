@@ -11,8 +11,8 @@ def check_alpha(alpha):
 
 
 # reading input image and trimap
-input_image = cv2.imread('Image_Source/Raw_Image/GT04.png');
-trimap_image = cv2.imread('Image_Source/Trimap/Trimap1/GT04.png');
+input_image = cv2.imread('Image_Source\Raw_Image\GT05.png');
+trimap_image = cv2.imread('Image_Source\Trimap\Trimap1\GT05.png');
 
 # Convert the image and trimap to double precision and normalize
 input_image = np.float64(input_image) / 255;
