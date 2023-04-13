@@ -13,8 +13,8 @@ start_time = time.time()
 
 # Your code goes here
 
-img = imageio.imread("Image_Source\Const_bg_Raw\GT02.png")[:, :, :3]
-trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT02.png", as_gray=True)
+img = imageio.imread("Image_Source\Raw_Image\GT16.png")[:, :, :3]
+trimap = imageio.imread("Image_Source\Trimap\Trimap1\GT16.png", as_gray=True)
 alpha,F,B = Bayesmat(img, trimap, 25, 8)
 
 
@@ -31,10 +31,10 @@ C[:,:,2] = alpha * img[:,:,2]
 end_time = time.time()
 elapsed_time = end_time - start_time
 
-# plt.imsave('Basic_matting\composite_output\const_GT02.png',C)
-# plt.imsave('Bayes_Output\const_GT02.png',alpha)
+# plt.imsave('Basic_matting\composite_output\const_GT16.png',C)
+# plt.imsave('Bayes_Output\const_GT16.png',alpha)
 
-cv2.imwrite('Bayes_Output\const_GT02.png', alpha * 255)
+cv2.imwrite('Bayes_Output\GT16.png', alpha * 255)
 
 print("Elapsed time: {:.2f} seconds".format(elapsed_time))
 
@@ -54,7 +54,7 @@ def check_alpha(alpha):
 class bayesiantesting(unittest.TestCase):
     
     def test_checkshape(self):
-        gt_image = imageio.imread("Image_Source\Ground_Truth\GT02.png")
+        gt_image = imageio.imread("Image_Source\Ground_Truth\GT16.png")
 
         # print("gt_image ",gt_image.shape)
         # print("alpha ",alpha.shape)
@@ -69,7 +69,7 @@ class bayesiantesting(unittest.TestCase):
         self.assertEqual(check_alpha(alpha),True,"Alpha values are not Correct")
 
     def test_check_Comp_shape(self):
-        gt_image = imageio.imread("Image_Source\Ground_Truth\GT02.png")
+        gt_image = imageio.imread("Image_Source\Ground_Truth\GT16.png")
 
         # print("gt_image ",gt_image.shape)
         # print("alpha ",alpha.shape)
